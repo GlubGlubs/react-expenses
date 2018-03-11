@@ -28,6 +28,7 @@ export class EditExpensePage extends React.Component {
 
 const mapStateToProps = (state, props) => {
   return {
+    //props.match.params.id para pegar  o id da pagina
     expense: state.expenses.find((expense) => expense.id === props.match.params.id)
   };
 }
