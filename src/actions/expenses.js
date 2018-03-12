@@ -27,6 +27,7 @@ export const addExpense = (expense) => ({
   });
 
   export const startAddExpense = (expenseData = {}) => {
+    //dispatch is provided by thunk
     return (dispatch) => {
       const {
         description = '',
@@ -49,11 +50,50 @@ export const addExpense = (expense) => ({
     type: 'REMOVE_EXPENSE',
     id
   });
+
+  export const startRemoveExpense = ( {id} = {} ) => {
+    return (dispatch) => {
+      return database.ref(`expenses/${id}`).remove().then(() => {
+        dispatch(removeExpense({id}))
+      })
+    }
+  }
   
   
   //Edit Expense
-  export const editExpense = (id, updates) => ({
-    type: 'EDIT_EXPENSE',
-    id,
-    updates
-  })
+export const editExpense = (id, updates) => ({
+  type: 'EDIT_EXPENSE',
+  id,
+  updates
+});
+
+export const startEditExpense = (id, updates) => {
+  return (dispatch) => {
+    return database.ref(`expenses/${id}`).update(updates).then(() => {
+      dispatch(editExpense(id, updates))
+    });
+  };
+};
+
+  // SET_EXPENSES
+  export const setExpenses = (expenses) => ({
+    type: 'SET_EXPENSES',
+    expenses
+  });
+
+  // export const startSetExpenses
+
+  export const startSetExpenses = () => {
+    return (dispatch) => {
+      const expenses = [];
+      //return below allow us to chain a .then at app.js
+      return database.ref('expenses')
+        .once('value')
+        .then((snapshot) => {
+          snapshot.forEach((child) => {
+            expenses.push({id: child.key, ...child.val()})
+          })
+          dispatch(setExpenses(expenses));
+        })
+    }
+  }

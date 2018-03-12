@@ -1,11 +1,22 @@
 import configureMockStore from 'redux-mock-store';
 import thunk from 'redux-thunk';
-import { startAddExpense, addExpense, editExpense, removeExpense } from '../../actions/expenses';
+import { startAddExpense, addExpense,
+         editExpense, removeExpense,
+         setExpenses, startSetExpenses,
+         startRemoveExpense, startEditExpense } from '../../actions/expenses';
 import expenses from '../fixtures/expenses';
 import database from '../../firebase/firebase';
 
 
 const createMockStore = configureMockStore([thunk]);
+
+beforeEach((done) => {
+  const expensesData = {};
+  expenses.forEach(({ id, description, note, amount, createdAt }) => {
+    expensesData[id] = {description, note, amount, createdAt};
+  });
+  database.ref('expenses').set(expensesData).then(() => done());
+});
 
 
 
@@ -18,6 +29,27 @@ test('should setup remove expense action object', () => {
   })
 });
 
+
+
+test('should remove expenses from firebase', (done) => {
+  const store = createMockStore({});
+  const id = expenses[2].id;
+  store.dispatch(startRemoveExpense({id})).then(() => {
+    const actions = store.getActions();
+    expect(actions[0]).toEqual({
+      type: 'REMOVE_EXPENSE',
+      id
+    });
+    return database.ref(`expenses/${id}`).once('value')
+  }).then((snapshot) => {
+    expect(snapshot.val()).toBeFalsy();
+    done();
+  });
+});
+
+
+
+
 //Test Edit Expense
 test('should setup edit expense action object', () => {
   const action = editExpense('123abc', {
@@ -29,6 +61,24 @@ test('should setup edit expense action object', () => {
     updates: {note: 'New note value'}
   });
 })
+
+test('should edit expenses from firebase', (done) => {
+  const store = createMockStore({});
+  const updateObject = expenses[0];
+  const id = expenses[2].id;
+  store.dispatch(startEditExpense(id, updateObject)).then(() => {
+    const actions = store.getActions();
+    expect(actions[0]).toEqual({
+      type: 'EDIT_EXPENSE',
+      id,
+      updates: updateObject
+    });
+    return database.ref(`expenses/${id}`).once('value')
+  }).then((snapshot) => {
+    expect(snapshot.val()).toEqual(updateObject);
+    done();
+  });
+});
 
 
 //Test Add Expense
@@ -92,28 +142,22 @@ test('should add expenses with defaults to database and store', (done) => {
 });
 
 
+test('should setup set  expense action object with data', () => {
+  const action = setExpenses(expenses);
+  expect(action).toEqual({
+    type: 'SET_EXPENSES',
+    expenses
+  });
+});
 
-
-
-
-
-
-
-
-
-
-
-
-// test('should setup the add expense object with default value', () => {
-//   const action = addExpense({});
-//   expect(action).toEqual({
-//     type: 'ADD_EXPENSE',
-//     expense: {
-//       description: '',
-//       note: '',
-//       amount: 0,
-//       createdAt: 0,
-//       id: expect.any(String)
-//     }
-//   })
-// })
+test('should fetch the expenses from firebase', (done) => {
+  const store = createMockStore({});
+  store.dispatch(startSetExpenses()).then(() => {
+    const actions = store.getActions();
+    expect(actions[0]).toEqual({
+      type: 'SET_EXPENSES',
+      expenses
+    });
+    done();
+  });
+})
