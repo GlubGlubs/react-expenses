@@ -7,8 +7,7 @@ export default  (expenses, { text, sortBy, startDate, endDate }) => {
       const startDateMatch = startDate ? startDate.isSameOrBefore(createdAtMoment, 'day') : true
       const endDateMatch = endDate ? endDate.isSameOrAfter(createdAtMoment, 'day') : true
       const textMatch = typeof text !== 'string' || expense.description.toLowerCase().includes(text.toLowerCase())
-  
-      return startDateMatch && endDateMatch && textMatch;
+      return textMatch;
     }).sort( (a, b) => {
       if (sortBy === 'date') {
         //deu positivo o segundo termo vai pra esquerda
@@ -19,3 +18,20 @@ export default  (expenses, { text, sortBy, startDate, endDate }) => {
     });
   };
   
+
+
+
+
+
+
+  import moment from 'moment';
+
+  export default (polls, { text = '', startDate, endDate }) => {
+    return polls.filter((poll) => {
+      const createdAt = moment(poll.createdAt);
+      const startMatch = startDate ? startDate.isSameOrBefore(createdAt, 'day') : true;
+      const endMatch = endDate ? endDate.isSameOrAfter(createdAt, 'day') : true;
+      const textMatch = typeof text !== 'string' || poll.pollName.toLowerCase().includes(text.toLowerCase());
+      return textMatch && endMatch && startMatch
+    })
+  }

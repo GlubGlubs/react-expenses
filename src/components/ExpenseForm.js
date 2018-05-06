@@ -97,3 +97,21 @@ export default class ExpenseForm extends React.Component {
     )
   }
 };
+
+
+const d = ['faaaab', 'aaaaaa']
+const la = 0
+d.sort(function lol(a, b) {
+  if (a[la] > b[la]) {
+    return 1
+  }
+  if (a[la] < b[la]) {
+    return -1
+  }
+  if (a == b) {
+    return -1
+  } else {
+    return -1
+  }
+  
+})
